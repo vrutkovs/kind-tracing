@@ -1,0 +1,31 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: cluster
+featureGates:
+  APIServerTracing: true
+  KubeletTracing: true
+nodes:
+- role: control-plane
+  image: docker.io/kindest/node:v1.26.0
+  extraMounts:
+  - hostPath: /home/vrutkovs/src/github.com/vrutkovs/kind-tracing/kubeapi
+    containerPath: /etc/kubernetes/apiserver
+    readOnly: true
+    selinuxRelabel: false
+  kubeadmConfigPatches:
+  - |
+    kind: ClusterConfiguration
+    apiServer:
+      extraArgs:
+        tracing-config-file: /etc/kubernetes/apiserver/trace.yaml
+      extraVolumes:
+        - name: apitracing
+          hostPath: /etc/kubernetes/apiserver/trace.yaml
+          mountPath: /etc/kubernetes/apiserver/trace.yaml
+          readOnly: true
+          pathType: "File"
+  - |
+    kind: KubeletConfiguration
+    tracing:
+      endpoint: "127.0.0.1:4317"
+      samplingRatePerMillion: 999999
