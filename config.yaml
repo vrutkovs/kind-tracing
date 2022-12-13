@@ -4,15 +4,27 @@ name: cluster
 featureGates:
   APIServerTracing: true
   KubeletTracing: true
+containerdConfigPatches:
+- |-
+  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5001"]
+    endpoint = ["http://kind-registry:5000"]
 nodes:
 - role: control-plane
-  image: docker.io/kindest/node:v1.26.0
+  image: localhost:5001/custom:kubelet
   extraMounts:
   - hostPath: /home/vrutkovs/src/github.com/vrutkovs/kind-tracing/kubeapi
     containerPath: /etc/kubernetes/apiserver
     readOnly: true
     selinuxRelabel: false
+  - hostPath: /home/vrutkovs/src/github.com/vrutkovs/kind-tracing/kubeadm-patches
+    containerPath: /etc/kubernetes/patches
+    readOnly: true
+    selinuxRelabel: false
   kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    patches:
+      directory: /etc/kubernetes/patches
   - |
     kind: ClusterConfiguration
     apiServer:

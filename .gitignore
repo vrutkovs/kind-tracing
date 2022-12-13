@@ -1,1 +1,3 @@
 grafana-agent/secret.yaml
+custom-node/kubelet
+custom-kubeapi/kube-apiserver
