@@ -4,10 +4,6 @@ name: cluster
 featureGates:
   APIServerTracing: true
   KubeletTracing: true
-containerdConfigPatches:
-- |-
-  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5001"]
-    endpoint = ["http://kind-registry:5000"]
 nodes:
 - role: control-plane
   image: localhost:5001/custom:kubelet
@@ -23,6 +19,9 @@ nodes:
   kubeadmConfigPatches:
   - |
     kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        container-runtime-endpoint: "unix:///var/run/crio/crio.sock"
     patches:
       directory: /etc/kubernetes/patches
   - |
@@ -38,6 +37,7 @@ nodes:
           pathType: "File"
   - |
     kind: KubeletConfiguration
+    cgroupDriver: "cgroupfs"
     tracing:
       endpoint: "127.0.0.1:4317"
       samplingRatePerMillion: 999999
